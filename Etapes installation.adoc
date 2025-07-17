@@ -1,5 +1,8 @@
 = 1. Projet Symfony standard
-
+Auteur Timothée Robert <timothee.robert@gmail.com>
+:doctype: book
+:toc: left
+:source-highlighter: highlight.js
 == Installation Scoop
 scoop install symfony-cli
 
@@ -38,9 +41,50 @@ symfony new vente-materiel
 | Noms de Classes en PHP (PSR-1), Composants (React)
 | *Non, surtout pas*
 |===
-
-3. démarrer le serveur
+== démarrer le serveur
 cd vente-materiel
 symfony local:server:ca:install
 symfony serve
 Dans le navigateur: https://127.0.0.1:8000
+
+= Installation des dépendances
+
+== twig
+composer require twig
+
+Utiliser un template twig pour la page d'accueil:
+
+== Créer le template twig
+Dans le dossier `templates/main`, (on crée un répertoire main dans templates) créer le fichier `accueil.html.twig` avec le contenu suivant:
+class MainController extends AbstractController
+{
+}
+
+On utilise $this->render() pour afficher un template twig.
+class MainController extends AbstractController
+{
+#[Route('/')]
+public function homepage(): Response
+{
+return $this->render('main/homepage.html.twig');
+}
+}
+
+== Passer des données à twig
+Dans le contrôleur, on peut passer des données à twig en utilisant un tableau associatif.
+class MainController extends AbstractController
+{
+    #[Route('/')]
+    public function homepage(): Response
+    {
+        $nombreProduits = 42; // Exemple de données à passer
+        return $this->render('main/accueil.html.twig', ['nombreProduits' => $nombreProduits]);
+    }
+}
+
+=== Héritage de template
+{% extends 'base.html.twig' %}
+
+Il faut utiliser des blocs pour pouvoir remplacer le contenu de la page.
+{% block title %}Accueil - Vente de matériel informatique{% endblock %}
+{% block body %}
