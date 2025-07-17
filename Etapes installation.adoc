@@ -1,0 +1,46 @@
+= 1. Projet Symfony standard
+
+== Installation Scoop
+scoop install symfony-cli
+
+
+Verification:
+symfony --help
+
+symfony --check
+Optimisations éventuelles à effectuer sur certains paramètres (opcache, tailles mémoire et upload ...)
+
+2. création projet venteMateriel: convention kebab (cf tableau comparatif)
+symfony new vente-materiel
+
+
+[cols="1,1,2,1"]
+|===
+| Convention | Exemple | Usage typique | Recommandé pour un projet ?
+
+| `kebab-case`
+| `vente-materiel`
+| Noms de projet/dépôt, URL, noms de paquets
+| *Oui, le meilleur choix*
+
+| `snake_case`
+| `vente_materiel`
+| Noms de bases de données/tables, variables
+| *Oui, très bonne alternative*
+
+| `camelCase`
+| `venteMateriel`
+| Noms de variables/fonctions (JS, Java, PHP)
+| *Non, à éviter*
+
+| `PascalCase`
+| `VenteMateriel`
+| Noms de Classes en PHP (PSR-1), Composants (React)
+| *Non, surtout pas*
+|===
+
+3. démarrer le serveur
+cd vente-materiel
+symfony local:server:ca:install
+symfony serve
+Dans le navigateur: https://127.0.0.1:8000
