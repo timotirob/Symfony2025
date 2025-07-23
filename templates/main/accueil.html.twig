@@ -5,7 +5,15 @@
 {% block body %}
 <h1>Welcome to the Accueil Page</h1><p>This is the main page of our application.</p>
 
+
 <div>
-Nous proposons {{ nombreProduits }} produits à la vente
-</div>
+    {% if nombreProduits > 0 %}
+        <p>Il y a {{ nombreProduits }} produits disponibles.</p>
+        <p> Par exemple:
+            {{ produitDuJour.nom }} au prix de {{ produitDuJour.prix }}.
+
+        </p>
+    {% else %}
+        <p>Aucun produit disponible pour le moment.</p>
+    {% endif %}
 {% endblock %}

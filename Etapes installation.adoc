@@ -56,11 +56,14 @@ Utiliser un template twig pour la page d'accueil:
 
 == Créer le template twig
 Dans le dossier `templates/main`, (on crée un répertoire main dans templates) créer le fichier `accueil.html.twig` avec le contenu suivant:
+```php
 class MainController extends AbstractController
 {
 }
+```
 
 On utilise $this->render() pour afficher un template twig.
+```php
 class MainController extends AbstractController
 {
 #[Route('/')]
@@ -69,9 +72,11 @@ public function homepage(): Response
 return $this->render('main/homepage.html.twig');
 }
 }
+```
 
 == Passer des données à twig
 Dans le contrôleur, on peut passer des données à twig en utilisant un tableau associatif.
+```php
 class MainController extends AbstractController
 {
     #[Route('/')]
@@ -81,10 +86,220 @@ class MainController extends AbstractController
         return $this->render('main/accueil.html.twig', ['nombreProduits' => $nombreProduits]);
     }
 }
+```
 
 === Héritage de template
+```php
 {% extends 'base.html.twig' %}
+```
+
 
 Il faut utiliser des blocs pour pouvoir remplacer le contenu de la page.
+```php
 {% block title %}Accueil - Vente de matériel informatique{% endblock %}
 {% block body %}
+```
+
+= Debugger
+== Utiliser le debuger Symfony
+composer require debug
+Permet de déboguer les requêtes, les routes, les contrôleurs, les services, etc. C'est intégré en bas de page dans le navigateur.
+
+== Debugger en ligne de commande
+symfony console debug:router
+ou bien: php bin/console debug:router
+
+Permet de lister les routes définies dans l'application.
+
+symfony console debug:twig
+Permet de lister les templates twig utilisés dans l'application.
+
+= Création d'API REST
+== Nouveau contrôleur
+symfony console make:controller ProduitControleur
+
+Ou bien, dans l'interface graphique PHPStorm, clic droit sur le dossier `src/Controller`, puis `New` > `PHP Class`, et nommer la classe `ProduitController`.
+
+La classe étend AbstractController (héritage: mot clef extends).
+
+=== Ajout d'une méthode pour lister les produits:
+
+public function getListe(): Response {
+}
+
+=== Ajout de la route pour cette méthode
+devant la méthode:
+```php
+#[Route('/api/produits')]
+```
+
+=== Ajout de plusieurs produits dans la méthode
+```php
+$produits = [
+['id' => 1, 'nom' => 'Stylo feutre noir', 'prix' => 2.00],
+['id' => 2, 'nom' => 'Trousse SIO', 'prix' => 4.00],
+['id' => 3, 'nom' => 'Cahier SLAM', 'prix' => 2.00],
+];
+```
+
+=== Retourner les produits en JSON
+```php
+return $this->json($produits);
+```
+
+=== Tester l'API
+Dans le navigateur, aller à l'URL: https://127.0.0.1:8000/api/produits
+
+== Refactoring: utilisation d'objets plutôt que de tableaux
+=== Création de la classe Produit
+Création d'un répertoire `src/Model` et d'une classe `Produit.php` dans ce répertoire.
+
+Ajout d'un constructeur pour initialiser les propriétés de la classe.
+
+Ajout de getters pour accéder aux propriétés de la classe.
+
+=== Modification du contrôleur pour utiliser la classe Produit
+
+```php
+$produits =[
+new Produit(1, 'Stylo feutre noir', 2.00),
+new Produit(2, 'Trousse SIO', 4.00),
+new Produit(3, 'Cahier SLAM', 2.00)
+];
+```
+
+=== Retourner les produits en JSON
+rafraichissement de la page dans le navigateur pour tester l'API.
+ça ne marchera pas !
+Il faut ajouter la sérialisation des objets en JSON.
+
+=== Sérialisation des objets en JSON
+composer require serializer
+
+rafraichissement de la page dans le navigateur pour tester l'API.
+
+[NOTE]
+.Question X : Analyse du Framework
+====
+En analysant le code du framework Symfony, pourquoi maintenant le flux Json est-il bien formaté et lisible dans le navigateur, alors qu'auparavant, il était vide ?
+
+Comment le composant Serializer de Symfony a-t-il permis de résoudre ce problème ?
+====
+= les Services
+== Qu'est-ce qu'un service ?
+Il s'agit d'un objet qui effectue une tâche spécifique dans l'application. Par exemple, un service peut être responsable de la gestion des utilisateurs, de l'envoi d'e-mails, ou de la connexion à une base de données.
+== Liste des services
+php bin\console debug:container
+Permet de lister les services disponibles dans l'application Symfony. Autre raccourci: CTRL CTRL (ouvre la fenêtre Run Anything) puis console debug:container
+
+Les services sont fournis par des bundles, qui sont des paquets de fonctionnalités réutilisables. Par exemple, le bundle `symfony/serializer` fournit le service `serializer`, qui permet de sérialiser et désérialiser des objets en JSON ou XML.
+
+== Test d'un service: logging
+Passons en paramètre de notre méthode `getListe()` un service de logging, qui va nous permettre d'enregistrer des messages dans un fichier de log.
+```php
+public function getListe(LoggerInterface $monLog): Response { ... }
+```
+Ensuite, juste après: dd($monLog);
+
+Et rafraichissement de la page dans le navigateur pour tester l'API, afin de voir le contenu du log dans la console.
+
+[NOTE]
+.Question 4 : L'outil de débogage à la main de développeur
+====
+Expliquer ce que fait la commande `dd($monLog);` dans le contexte de Symfony et comment elle aide les développeurs à déboguer leur code.
+====
+== Utilisation du service de logging
+En lieu et place de `dd($monLog);`, on va utiliser le service de logging pour enregistrer un message dans le fichier de log.
+$monLog->info('Liste des produits demandée');
+
+Rafraichissement de la page dans le navigateur pour tester l'API, afin de voir le contenu du log dans le fichier `var/log/dev.log`.
+
+Alternative: aller sur l'URL https://127.0.0.1:8000/_profiler et cliquer sur le token correspondant à la requête pour voir les logs dans l'interface de débogage Symfony.
+
+== Création d'un service personnalisé
+On peut créer un service personnalisé pour encapsuler la logique de gestion des produits. Cela permet de séparer les préoccupations et de rendre le code plus modulaire.
+
+La création d'un service peut se faire en créant une classe n'importe où dans le répertoire `src/`, par exemple `src/Service/ProduitService.php`.
+
+Ici nous allons voir comment créer un service de type Repository, qui est une abstraction pour accéder aux données d'une entité.
+
+=== Création d'un Repository
+Création d'un répertoire `src/Repository` et d'une classe `ProduitRepository.php` dans ce répertoire.
+
+On peut passer ce nouveau Repository en paramètre de la méthode `getListe()` du contrôleur.
+Pour tester, on peut utiliser dd sur le paramètre
+Vérifier que le Repository est bien injecté dans le contrôleur en rafraichissant la page dans le navigateur.
+
+=== Ajout d'une méthode pour lister les produits
+
+Ajoutons une méthode findAll() dans le Repository pour retourner la liste des produits. Le nom de la méthode est conventionnel. Cette méthode renvoie un tableau de produits.
+Le code consiste simplement à renvoyer le tableau de produits qu'on construit dans le contrôleur.
+
+=== Utilisation du Repository dans le contrôleur
+On modifie la méthode getListe() du contrôleur pour utiliser le Repository et appeler la méthode findAll() pour récupérer la liste des produits.
+
+[NOTE]
+.Question 5 : Refactoring avec un repository
+====
+Effectuer le refactoring. Quel est l'intérêt de cette approche ? Pourquoi est-il préférable d'utiliser un repository pour gérer les données plutôt que de les manipuler directement dans le contrôleur ?
+====
+
+=== Logging dans le Repository
+On va refactorer le code du Repository pour utiliser le service de logging. On va ajouter un paramètre de type LoggerInterface dans le constructeur du Repository, et l'enregistrer dans une propriété de la classe.
+
+Ensuite, on va utiliser ce service de logging dans la méthode findAll() pour enregistrer un message dans le fichier de log.
+
+Vérifier dans le profiler (https://127.0.0.1:8000/_profiler) que le message de log est bien enregistré dans l'onglet Logs.
+
+== Application: modification de la page d'accueil
+=== Modification du contrôleur MainController
+On va modifier le contrôleur MainController pour utiliser le Repository et effectuer un comptage dynamique sur la page d'accueil.
+
+On ajoute un paramètre de type ProduitRepository dans la méthode pageaccueil() du contrôleur MainController.
+
+On récupère la liste des produits en appelant la méthode findAll() du Repository.
+
+On modifie la variable $nombreProduits pour qu'elle contienne le nombre de produits retournés par le Repository.
+
+Vérifier que la page d'accueil affiche bien le nombre de produits.
+
+=== Modification du template twig
+[NOTE]
+.Question 6 : Affichage d'un produit au hasard
+====
+Dans le template twig, afficher un produit au hasard de la liste des produits. Comment peut-on le faire en utilisant Twig ?
+
+Essayer de le faire sans regarder les indications.
+
+Astuce : Utiliser la fonction `random()` de Twig pour sélectionner un produit aléatoire.
+Astuce : passe ce produit aléatoire en paramètre du template twig.
+Astuce : utiliser la syntaxe `{{ produit.nom }}` pour afficher le nom du produit.
+====
+== Ajout d'une nouvelle route pour afficher un produit
+=== Création d'une nouvelle méthode dans le contrôleur
+On va créer une nouvelle méthode dans le contrôleur ProduitController pour afficher un produit spécifique.
+Ci dessous le code de la méthode:
+```php
+#[Route('/api/produits/{id<\d+>}', methods: ['GET'])]
+    public function get(int $id, ProduitRepository $repository): Response {
+        $produit = $repository->find($id);
+        if (!$produit){
+            throw $this->createNotFoundException('produit non trouvé');
+        }
+        return $this->json($produit);
+    }
+```
+[NOTE]
+.Question 7 : Création de la méthode find() dans le Repository
+====
+Dans le Repository, créer une méthode `find(int $id)` qui retourne un produit spécifique en fonction de son identifiant. Comment implémenter cette méthode pour qu'elle renvoie le produit correspondant ou `null` si le produit n'existe pas ?
+
+A quoi sert la méthode `createNotFoundException` dans ce contexte ? Quel est son rôle dans la gestion des erreurs ?
+
+
+Astuce : la signature de la méthode doit être `public function find(int $id): ?Produit`.
+
+Astuce : ici on n'a pas de base de donées mais on dispose d'une méthode qui renvoie le tableau de Produits .
+====
+
+
