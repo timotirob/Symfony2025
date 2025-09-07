@@ -1,305 +1,529 @@
-= 1. Projet Symfony standard
-Auteur Timothée Robert <timothee.robert@gmail.com>
+= Projet Symfony : Travaux Pratiques
+Timothée Robert <timothee.robert@gmail.com>
 :doctype: book
 :toc: left
 :source-highlighter: highlight.js
-== Installation Scoop
+:highlightjs-theme: monokai
+
+= Partie 1 : Installation et Configuration
+
+== Installation des outils
+
+.Etape 0 : Installation de Scoop (Prérequis Windows)
+--
+Scoop est un gestionnaire de paquets en ligne de commande pour Windows, très pratique pour installer des outils de développement.
+
+Ouvrez un terminal **PowerShell** et exécutez la commande suivante pour autoriser l'exécution de scripts :
+
+[source,powershell]
+----
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+----
+
+Ensuite, lancez l'installation de Scoop avec cette commande :
+
+[source,powershell]
+----
+irm get.scoop.sh | iex
+----
+
+Pour vérifier que l'installation a réussi, fermez et rouvrez votre terminal, puis tapez `scoop help`.
+--
+
+.Etape 1 : Installation de la CLI Symfony
+--
+Installez la CLI Symfony en utilisant Scoop.
+
+[source,bash]
+----
 scoop install symfony-cli
+----
 
+Une fois l'installation terminée, vérifiez son succès avec la commande suivante :
 
-Verification:
+[source,bash]
+----
 symfony --help
+----
 
-symfony --check
-Optimisations éventuelles à effectuer sur certains paramètres (opcache, tailles mémoire et upload ...)
+Enfin, lancez le vérificateur de configuration de Symfony pour identifier les optimisations possibles sur votre environnement PHP (OPcache, limites mémoire, etc.).
 
-2. création projet venteMateriel: convention kebab (cf tableau comparatif)
+[source,bash]
+----
+symfony check
+----
+--
+
+== Création et lancement du projet
+
+.Etape 2 : Création d'un nouveau projet
+--
+Créez un nouveau projet Symfony nommé `vente-materiel`. Nous utilisons ici la convention `kebab-case` (minuscules séparées par des tirets), qui est la meilleure pratique pour les noms de projets.
+
+[source,bash]
+----
 symfony new vente-materiel
+----
 
+Le tableau ci-dessous résume les conventions de nommage :
 
 [cols="1,1,2,1"]
 |===
 | Convention | Exemple | Usage typique | Recommandé pour un projet ?
-
-| `kebab-case`
-| `vente-materiel`
-| Noms de projet/dépôt, URL, noms de paquets
-| *Oui, le meilleur choix*
-
-| `snake_case`
-| `vente_materiel`
-| Noms de bases de données/tables, variables
-| *Oui, très bonne alternative*
-
-| `camelCase`
-| `venteMateriel`
-| Noms de variables/fonctions (JS, Java, PHP)
-| *Non, à éviter*
-
-| `PascalCase`
-| `VenteMateriel`
-| Noms de Classes en PHP (PSR-1), Composants (React)
-| *Non, surtout pas*
+| `kebab-case` | `vente-materiel` | Noms de projet/dépôt, URL | *Oui, le meilleur choix*
+| `snake_case` | `vente_materiel` | Noms de bases de données/tables | *Oui, très bonne alternative*
+| `camelCase` | `venteMateriel` | Noms de variables/fonctions | *Non, à éviter*
+| `PascalCase` | `VenteMateriel` | Noms de Classes en PHP | *Non, à réserver au code*
 |===
-== démarrer le serveur
+--
+
+.Etape 3 : Lancement du serveur local
+--
+Placez-vous dans le répertoire du projet et lancez le serveur web local.
+
+[source,bash]
+----
 cd vente-materiel
-symfony local:server:ca:install
+----
+
+Pour une navigation sécurisée en HTTPS, installez le certificat local de Symfony :
+
+[source,bash]
+----
+symfony server:ca:install
+----
+
+Démarrez ensuite le serveur :
+
+[source,bash]
+----
 symfony serve
-Dans le navigateur: https://127.0.0.1:8000
+----
 
-= Installation des dépendances
+Enfin, vérifiez que le serveur fonctionne en ouvrant votre navigateur à l'adresse https://127.0.0.1:8000.
+--
 
-== twig
+= Partie 2 : Templating avec Twig
+
+== Installation et utilisation de Twig
+
+.Etape 4 : Installation et création d'un template
+--
+Installez le moteur de template Twig via Composer.
+
+[source,bash]
+----
 composer require twig
+----
 
-Utiliser un template twig pour la page d'accueil:
+Ensuite, créez un répertoire `templates/main/` et à l'intérieur, un fichier `accueil.html.twig`.
 
-== Créer le template twig
-Dans le dossier `templates/main`, (on crée un répertoire main dans templates) créer le fichier `accueil.html.twig` avec le contenu suivant:
-```php
-class MainController extends AbstractController
-{
-}
-```
+Modifiez votre `MainController` pour qu'il utilise la méthode `$this->render()` afin d'afficher ce nouveau template.
 
-On utilise $this->render() pour afficher un template twig.
-```php
-class MainController extends AbstractController
-{
-#[Route('/')]
-public function homepage(): Response
-{
-return $this->render('main/homepage.html.twig');
-}
-}
-```
+[source,php]
+----
+<?php
+// src/Controller/MainController.php
+namespace App\Controller;
 
-== Passer des données à twig
-Dans le contrôleur, on peut passer des données à twig en utilisant un tableau associatif.
-```php
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
 class MainController extends AbstractController
 {
     #[Route('/')]
     public function homepage(): Response
     {
-        $nombreProduits = 42; // Exemple de données à passer
-        return $this->render('main/accueil.html.twig', ['nombreProduits' => $nombreProduits]);
+        return $this->render('main/accueil.html.twig');
     }
 }
-```
+----
+--
 
-=== Héritage de template
-```php
-{% extends 'base.html.twig' %}
-```
+.Etape 5 : Passage de données au template
+--
+Modifiez le contrôleur pour passer un tableau de données au template Twig.
 
-
-Il faut utiliser des blocs pour pouvoir remplacer le contenu de la page.
-```php
-{% block title %}Accueil - Vente de matériel informatique{% endblock %}
-{% block body %}
-```
-
-= Debugger
-== Utiliser le debuger Symfony
-composer require debug
-Permet de déboguer les requêtes, les routes, les contrôleurs, les services, etc. C'est intégré en bas de page dans le navigateur.
-
-== Debugger en ligne de commande
-symfony console debug:router
-ou bien: php bin/console debug:router
-
-Permet de lister les routes définies dans l'application.
-
-symfony console debug:twig
-Permet de lister les templates twig utilisés dans l'application.
-
-= Création d'API REST
-== Nouveau contrôleur
-symfony console make:controller ProduitControleur
-
-Ou bien, dans l'interface graphique PHPStorm, clic droit sur le dossier `src/Controller`, puis `New` > `PHP Class`, et nommer la classe `ProduitController`.
-
-La classe étend AbstractController (héritage: mot clef extends).
-
-=== Ajout d'une méthode pour lister les produits:
-
-public function getListe(): Response {
+[source,php]
+----
+// ...
+public function homepage(): Response
+{
+    $nombreProduits = 42; // Exemple de données à passer
+    return $this->render('main/accueil.html.twig', [
+        'nombreProduits' => $nombreProduits
+    ]);
 }
+// ...
+----
 
-=== Ajout de la route pour cette méthode
-devant la méthode:
-```php
-#[Route('/api/produits')]
-```
+Utilisez l'héritage de template en ajoutant `{% extends 'base.html.twig' %}` au début de votre fichier `accueil.html.twig`.
+Utilisez les blocs `{% block title %}` et `{% block body %}` pour surcharger le contenu de la page parente. C'est le même principe que la surcharge de méthodes en POO.
+--
 
-=== Ajout de plusieurs produits dans la méthode
-```php
-$produits = [
-['id' => 1, 'nom' => 'Stylo feutre noir', 'prix' => 2.00],
-['id' => 2, 'nom' => 'Trousse SIO', 'prix' => 4.00],
-['id' => 3, 'nom' => 'Cahier SLAM', 'prix' => 2.00],
-];
-```
+= Partie 3 : Débogage
 
-=== Retourner les produits en JSON
-```php
-return $this->json($produits);
-```
+== Outils de débogage
 
-=== Tester l'API
-Dans le navigateur, aller à l'URL: https://127.0.0.1:8000/api/produits
+.Etape 6 : Installation et utilisation de la Debug Toolbar
+--
+Installez le pack de débogage de Symfony.
 
-== Refactoring: utilisation d'objets plutôt que de tableaux
-=== Création de la classe Produit
-Création d'un répertoire `src/Model` et d'une classe `Produit.php` dans ce répertoire.
+[source,bash]
+----
+composer require debug --dev
+----
 
-Ajout d'un constructeur pour initialiser les propriétés de la classe.
+Cet outil ajoute une barre de débogage très complète en bas de page dans votre navigateur, permettant d'inspecter les requêtes, les routes, les performances, etc.
 
-Ajout de getters pour accéder aux propriétés de la classe.
+Pour déboguer en ligne de commande, vous pouvez lister toutes les routes ou les templates de votre application.
 
-=== Modification du contrôleur pour utiliser la classe Produit
+[source,bash]
+----
+# Lister les routes
+php bin/console debug:router
 
-```php
-$produits =[
-new Produit(1, 'Stylo feutre noir', 2.00),
-new Produit(2, 'Trousse SIO', 4.00),
-new Produit(3, 'Cahier SLAM', 2.00)
-];
-```
+# Lister les templates Twig
+php bin/console debug:twig
+----
+--
 
-=== Retourner les produits en JSON
-rafraichissement de la page dans le navigateur pour tester l'API.
-ça ne marchera pas !
-Il faut ajouter la sérialisation des objets en JSON.
+= Partie 4 : Création d'une API REST
 
-=== Sérialisation des objets en JSON
+== Mise en place du contrôleur d'API
+
+.Etape 7 : Création du contrôleur et de la première route
+--
+Créez un nouveau contrôleur pour votre API.
+
+[source,bash]
+----
+symfony console make:controller ProduitApiController
+----
+
+Dans ce nouveau contrôleur, ajoutez une méthode `getListe()` qui retournera une liste de produits au format JSON. Définissez sa route avec l'attribut `#[Route]`.
+
+[source,php]
+----
+<?php
+// src/Controller/ProduitApiController.php
+namespace App\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+class ProduitApiController extends AbstractController
+{
+    #[Route('/api/produits')]
+    public function getListe(): Response
+    {
+        $produits = [
+            ['id' => 1, 'nom' => 'Stylo feutre noir', 'prix' => 2.00],
+            ['id' => 2, 'nom' => 'Trousse SIO', 'prix' => 4.00],
+            ['id' => 3, 'nom' => 'Cahier SLAM', 'prix' => 2.00],
+        ];
+
+        return $this->json($produits);
+    }
+}
+----
+
+Testez votre API en accédant à l'URL https://127.0.0.1:8000/api/produits dans votre navigateur.
+--
+
+.Etape 8 : Refactoring avec des objets
+--
+Créez un répertoire `src/Model` et à l'intérieur, une classe `Produit.php` avec un constructeur et des getters.
+
+[source,php]
+----
+<?php
+// src/Model/Produit.php
+namespace App\Model;
+
+class Produit
+{
+    public function __construct(
+        private int $id,
+        private string $nom,
+        private float $prix
+    ) {}
+
+    public function getId(): int { return $this->id; }
+    public function getNom(): string { return $this->nom; }
+    public function getPrix(): float { return $this->prix; }
+}
+----
+
+Modifiez ensuite votre contrôleur pour utiliser cette nouvelle classe.
+
+[source,php]
+----
+// ... dans ProduitApiController.php
+use App\Model\Produit;
+// ...
+public function getListe(): Response
+{
+    $produits = [
+        new Produit(1, 'Stylo feutre noir', 2.00),
+        new Produit(2, 'Trousse SIO', 4.00),
+        new Produit(3, 'Cahier SLAM', 2.00)
+    ];
+    return $this->json($produits);
+}
+// ...
+----
+
+En rafraîchissant la page, vous constaterez que la réponse est vide ! Pour corriger cela, installez le composant Serializer.
+
+[source,bash]
+----
 composer require serializer
+----
 
-rafraichissement de la page dans le navigateur pour tester l'API.
+Rafraîchissez à nouveau la page. Le flux JSON devrait maintenant être correctement formaté.
+--
 
+.Etape 9 : Analyse du composant Serializer
 [NOTE]
-.Question X : Analyse du Framework
 ====
-En analysant le code du framework Symfony, pourquoi maintenant le flux Json est-il bien formaté et lisible dans le navigateur, alors qu'auparavant, il était vide ?
-
-Comment le composant Serializer de Symfony a-t-il permis de résoudre ce problème ?
+Pourquoi le flux JSON est-il maintenant bien formaté, alors qu'il était vide auparavant ? Comment le composant Serializer de Symfony a-t-il permis de résoudre ce problème ?
 ====
-= les Services
-== Qu'est-ce qu'un service ?
-Il s'agit d'un objet qui effectue une tâche spécifique dans l'application. Par exemple, un service peut être responsable de la gestion des utilisateurs, de l'envoi d'e-mails, ou de la connexion à une base de données.
-== Liste des services
-php bin\console debug:container
-Permet de lister les services disponibles dans l'application Symfony. Autre raccourci: CTRL CTRL (ouvre la fenêtre Run Anything) puis console debug:container
 
-Les services sont fournis par des bundles, qui sont des paquets de fonctionnalités réutilisables. Par exemple, le bundle `symfony/serializer` fournit le service `serializer`, qui permet de sérialiser et désérialiser des objets en JSON ou XML.
+= Partie 5 : Les Services et l'Injection de Dépendances
 
-== Test d'un service: logging
-Passons en paramètre de notre méthode `getListe()` un service de logging, qui va nous permettre d'enregistrer des messages dans un fichier de log.
-```php
-public function getListe(LoggerInterface $monLog): Response { ... }
-```
-Ensuite, juste après: dd($monLog);
+== Utilisation des services existants
 
-Et rafraichissement de la page dans le navigateur pour tester l'API, afin de voir le contenu du log dans la console.
+.Etape 10 : Utilisation du service de logging
+--
+Pour voir la liste de tous les services disponibles dans l'application, utilisez la commande suivante :
 
+[source,bash]
+----
+php bin/console debug:container
+----
+
+Nous allons maintenant utiliser le service de logging. Pour ce faire, injectez `LoggerInterface` en tant que paramètre de votre méthode `getListe()`.
+
+[source,php]
+----
+// ...
+use Psr\Log\LoggerInterface;
+
+public function getListe(LoggerInterface $monLog): Response
+{
+    // ...
+}
+----
+
+Pour inspecter l'objet injecté, utilisez la fonction `dd()` (dump and die) de Symfony.
+
+[source,php]
+----
+public function getListe(LoggerInterface $monLog): Response
+{
+    dd($monLog);
+    // ...
+}
+----
+--
+
+.Etape 11 : Analyse de la fonction dd()
 [NOTE]
-.Question 4 : L'outil de débogage à la main de développeur
 ====
-Expliquer ce que fait la commande `dd($monLog);` dans le contexte de Symfony et comment elle aide les développeurs à déboguer leur code.
-====
-== Utilisation du service de logging
-En lieu et place de `dd($monLog);`, on va utiliser le service de logging pour enregistrer un message dans le fichier de log.
-$monLog->info('Liste des produits demandée');
-
-Rafraichissement de la page dans le navigateur pour tester l'API, afin de voir le contenu du log dans le fichier `var/log/dev.log`.
-
-Alternative: aller sur l'URL https://127.0.0.1:8000/_profiler et cliquer sur le token correspondant à la requête pour voir les logs dans l'interface de débogage Symfony.
-
-== Création d'un service personnalisé
-On peut créer un service personnalisé pour encapsuler la logique de gestion des produits. Cela permet de séparer les préoccupations et de rendre le code plus modulaire.
-
-La création d'un service peut se faire en créant une classe n'importe où dans le répertoire `src/`, par exemple `src/Service/ProduitService.php`.
-
-Ici nous allons voir comment créer un service de type Repository, qui est une abstraction pour accéder aux données d'une entité.
-
-=== Création d'un Repository
-Création d'un répertoire `src/Repository` et d'une classe `ProduitRepository.php` dans ce répertoire.
-
-On peut passer ce nouveau Repository en paramètre de la méthode `getListe()` du contrôleur.
-Pour tester, on peut utiliser dd sur le paramètre
-Vérifier que le Repository est bien injecté dans le contrôleur en rafraichissant la page dans le navigateur.
-
-=== Ajout d'une méthode pour lister les produits
-
-Ajoutons une méthode findAll() dans le Repository pour retourner la liste des produits. Le nom de la méthode est conventionnel. Cette méthode renvoie un tableau de produits.
-Le code consiste simplement à renvoyer le tableau de produits qu'on construit dans le contrôleur.
-
-=== Utilisation du Repository dans le contrôleur
-On modifie la méthode getListe() du contrôleur pour utiliser le Repository et appeler la méthode findAll() pour récupérer la liste des produits.
-
-[NOTE]
-.Question 5 : Refactoring avec un repository
-====
-Effectuer le refactoring. Quel est l'intérêt de cette approche ? Pourquoi est-il préférable d'utiliser un repository pour gérer les données plutôt que de les manipuler directement dans le contrôleur ?
+Expliquez ce que fait la fonction `dd()` dans le contexte de Symfony et comment elle aide les développeurs à déboguer leur code.
 ====
 
-=== Logging dans le Repository
-On va refactorer le code du Repository pour utiliser le service de logging. On va ajouter un paramètre de type LoggerInterface dans le constructeur du Repository, et l'enregistrer dans une propriété de la classe.
+.Etape 12 : Enregistrement d'un log
+--
+Remplacez `dd($monLog);` par un appel à la méthode `info()` pour enregistrer un message.
 
-Ensuite, on va utiliser ce service de logging dans la méthode findAll() pour enregistrer un message dans le fichier de log.
+[source,php]
+----
+public function getListe(LoggerInterface $monLog): Response
+{
+    $monLog->info('Liste des produits demandée');
+    // ...
+}
+----
 
-Vérifier dans le profiler (https://127.0.0.1:8000/_profiler) que le message de log est bien enregistré dans l'onglet Logs.
+Vérifiez que le message apparaît bien dans le fichier `var/log/dev.log` ou dans l'onglet "Logs" du Profiler Symfony.
+--
 
-== Application: modification de la page d'accueil
-=== Modification du contrôleur MainController
-On va modifier le contrôleur MainController pour utiliser le Repository et effectuer un comptage dynamique sur la page d'accueil.
+== Création d'un service personnalisé : le Repository
 
-On ajoute un paramètre de type ProduitRepository dans la méthode pageaccueil() du contrôleur MainController.
+.Etape 13 : Refactoring avec un Repository
+--
+Créez un répertoire `src/Repository` et à l'intérieur une classe `ProduitRepository.php`. Cette classe aura pour rôle de centraliser l'accès aux données des produits.
 
-On récupère la liste des produits en appelant la méthode findAll() du Repository.
+Ajoutez une méthode `findAll()` dans ce nouveau Repository, qui retournera le tableau de produits que nous avions dans le contrôleur.
 
-On modifie la variable $nombreProduits pour qu'elle contienne le nombre de produits retournés par le Repository.
+[source,php]
+----
+<?php
+// src/Repository/ProduitRepository.php
+namespace App\Repository;
 
-Vérifier que la page d'accueil affiche bien le nombre de produits.
+use App\Model\Produit;
+use Psr\Log\LoggerInterface;
 
-=== Modification du template twig
-[NOTE]
-.Question 6 : Affichage d'un produit au hasard
-====
-Dans le template twig, afficher un produit au hasard de la liste des produits. Comment peut-on le faire en utilisant Twig ?
+class ProduitRepository
+{
+    public function __construct(private LoggerInterface $logger) {}
 
-Essayer de le faire sans regarder les indications.
-
-Astuce : Utiliser la fonction `random()` de Twig pour sélectionner un produit aléatoire.
-Astuce : passe ce produit aléatoire en paramètre du template twig.
-Astuce : utiliser la syntaxe `{{ produit.nom }}` pour afficher le nom du produit.
-====
-== Ajout d'une nouvelle route pour afficher un produit
-=== Création d'une nouvelle méthode dans le contrôleur
-On va créer une nouvelle méthode dans le contrôleur ProduitController pour afficher un produit spécifique.
-Ci dessous le code de la méthode:
-```php
-#[Route('/api/produits/{id<\d+>}', methods: ['GET'])]
-    public function get(int $id, ProduitRepository $repository): Response {
-        $produit = $repository->find($id);
-        if (!$produit){
-            throw $this->createNotFoundException('produit non trouvé');
-        }
-        return $this->json($produit);
+    public function findAll(): array
+    {
+        $this->logger->info('Récupération de la liste de tous les produits.');
+        return [
+            new Produit(1, 'Stylo feutre noir', 2.00),
+            new Produit(2, 'Trousse SIO', 4.00),
+            new Produit(3, 'Cahier SLAM', 2.00)
+        ];
     }
-```
+}
+----
+
+Modifiez ensuite le contrôleur `ProduitApiController` pour qu'il utilise ce Repository via l'injection de dépendances.
+
+[source,php]
+----
+// ... dans ProduitApiController.php
+use App\Repository\ProduitRepository;
+
+#[Route('/api/produits')]
+public function getListe(ProduitRepository $repository): Response
+{
+    $produits = $repository->findAll();
+    return $this->json($produits);
+}
+----
+--
+
+.Etape 14 : Analyse de l'approche Repository
 [NOTE]
-.Question 7 : Création de la méthode find() dans le Repository
 ====
-Dans le Repository, créer une méthode `find(int $id)` qui retourne un produit spécifique en fonction de son identifiant. Comment implémenter cette méthode pour qu'elle renvoie le produit correspondant ou `null` si le produit n'existe pas ?
-
-A quoi sert la méthode `createNotFoundException` dans ce contexte ? Quel est son rôle dans la gestion des erreurs ?
-
-
-Astuce : la signature de la méthode doit être `public function find(int $id): ?Produit`.
-
-Astuce : ici on n'a pas de base de donées mais on dispose d'une méthode qui renvoie le tableau de Produits .
+Effectuez le refactoring. Quel est l'intérêt de cette approche ? Pourquoi est-il préférable d'utiliser un repository pour gérer les données plutôt que de les manipuler directement dans le contrôleur ?
 ====
 
+.Etape 15 : Application sur la page d'accueil
+--
+Modifiez le `MainController` pour utiliser le `ProduitRepository`, récupérer la liste des produits et passer le *nombre* de produits au template.
 
+Ensuite, modifiez le template `accueil.html.twig` pour afficher un produit choisi au hasard dans la liste.
+
+[NOTE]
+====
+Comment peut-on afficher un produit au hasard en utilisant Twig ?
+Essayez de le faire sans regarder les indications.
+
+*Astuce 1 :* Passez le tableau complet des produits au template, en plus du nombre.
+*Astuce 2 :* Utilisez la fonction `random()` de Twig pour sélectionner un produit aléatoire dans le tableau.
+*Astuce 3 :* Affichez son nom avec `{{ produitAleatoire.nom }}`.
+====
+--
+
+== Ajout d'une route pour un produit spécifique
+
+.Etape 16 : Création de la méthode find() dans le Repository
+--
+Ajoutez une nouvelle route dans `ProduitApiController` pour afficher un seul produit via son ID.
+
+[source,php]
+----
+// ... dans ProduitApiController.php
+
+#[Route('/api/produits/{id<\d+>}', methods: ['GET'])]
+public function get(int $id, ProduitRepository $repository): Response
+{
+    $produit = $repository->find($id);
+
+    if (!$produit) {
+        throw $this->createNotFoundException('Produit non trouvé');
+    }
+
+    return $this->json($produit);
+}
+----
+
+Implémentez maintenant la méthode `find(int $id)` dans votre `ProduitRepository`. Elle doit parcourir la liste des produits et retourner le produit correspondant à l'ID, ou `null` s'il n'est pas trouvé.
+
+[NOTE]
+====
+La signature de la méthode doit être `public function find(int $id): ?Produit`.
+À quoi sert la méthode `createNotFoundException` dans ce contexte ? Quel est son rôle dans la gestion des erreurs ?
+====
+--
+
+= Partie 6 : Contrôleur et Template HTML
+
+== Affichage d'une page produit
+
+.Etape 17 : Création d'un contrôleur et d'une route HTML
+--
+Un même Repository peut servir à la fois une API et des pages HTML. Créez un nouveau `ProduitController.php` (sans le "Api") qui étendra `AbstractController`.
+
+Ajoutez une méthode `show(int $id)` avec la route `/produits/{id}`.
+
+[source,php]
+----
+<?php
+// src/Controller/ProduitController.php
+namespace App\Controller;
+
+use App\Repository\ProduitRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+class ProduitController extends AbstractController
+{
+    #[Route('/produits/{id<\d+>}', name: 'app_produit_show')]
+    public function show(int $id, ProduitRepository $repository): Response
+    {
+        $produit = $repository->find($id);
+
+        if (!$produit) {
+            throw $this->createNotFoundException('Produit non trouvé');
+        }
+
+        return $this->render('produit/show.html.twig', [
+            'produit' => $produit
+        ]);
+    }
+}
+----
+
+Créez le template `templates/produit/show.html.twig` associé. PhpStorm peut vous aider à le créer directement (Alt+Entrée sur le nom du template).
+
+[source,twig]
+----
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ produit.nom }}{% endblock %}
+
+{% block body %}
+    <h1>{{ produit.nom }}</h1>
+    <p>Prix : {{ produit.prix }} €</p>
+{% endblock %}
+----
+
+Vérifiez que l'accès à la page fonctionne pour différents produits (ex: `/produits/1`).
+--
+
+.Etape 18 : Création d'un lien vers la page produit
+--
+Maintenant que notre route `app_produit_show` est nommée, nous pouvons l'utiliser pour créer des liens.
+
+Dans votre template d'accueil (`accueil.html.twig`), modifiez le code qui affiche un produit au hasard pour qu'il affiche un lien cliquable vers la page de détail de ce produit.
+
+Le code à utiliser est le suivant :
+
+[source,twig]
+----
+<a href="{{ path('app_produit_show', {id: produitDuJour.id}) }}">
+    {{ produitDuJour.nom }}
+</a>
+----
+--

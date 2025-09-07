@@ -1,0 +1,11 @@
+{% extends 'base.html.twig'  %}
+
+{% block title %} {{ produit.nom }} {% endblock %}
+
+{% block body %}
+
+<div>
+    Le produit choisi est:
+                {{ produit.nom }} au prix de {{ produit.prix }}.
+</div>
+    {% endblock %}

@@ -10,7 +10,9 @@
     {% if nombreProduits > 0 %}
         <p>Il y a {{ nombreProduits }} produits disponibles.</p>
         <p> Par exemple:
-            {{ produitDuJour.nom }} au prix de {{ produitDuJour.prix }}.
+            <a href="{{ path('app_produit_show',{id: produitDuJour.id}) }}">
+            {{ produitDuJour.nom }}
+            </a>
 
         </p>
     {% else %}
