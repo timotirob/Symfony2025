@@ -113,7 +113,7 @@ Installez le moteur de template Twig via Composer.
 
 [source,bash]
 ----
-composer require twig
+composer require symfony/twig-bundle
 ----
 
 Ensuite, créez un répertoire `templates/main/` et à l'intérieur, un fichier `accueil.html.twig`.
