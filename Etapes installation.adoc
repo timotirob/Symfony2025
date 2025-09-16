@@ -50,7 +50,7 @@ Enfin, lancez le vérificateur de configuration de Symfony pour identifier les o
 
 [source,bash]
 ----
-symfony check
+symfony check:requirements
 ----
 --
 
